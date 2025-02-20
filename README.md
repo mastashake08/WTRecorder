@@ -16,7 +16,7 @@ WTRecorder is a lightweight JavaScript library that uses **WebTransport** and **
 ## 📦 Installation
 
 ```
-npm install wt-recorder
+npm install @mastashake08/wt-recorder
 ```
 
 ---
@@ -93,7 +93,7 @@ Cleans up resources after stopping the recording.
 
 ## ⚡ Example App
 ```js
-import { WTRecorder } from 'wt-recorder';
+import { WTRecorder } from '@mastashake08/wt-recorder';
 
 (async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
