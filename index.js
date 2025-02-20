@@ -1,3 +1,5 @@
-module.exports = function () {
-  return 'npm-package-template';
-};
+import { WTRecorder } from './WTRecorder.js'
+
+export {
+  WTRecorder
+}
