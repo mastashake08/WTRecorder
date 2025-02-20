@@ -1,4 +1,4 @@
-import { WTRecorder } from './WTRecorder.js'
+import { WTRecorder } from './src/WTRecorder.js'
 
 export {
   WTRecorder
