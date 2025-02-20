@@ -102,7 +102,7 @@ export class WTRecorder {
       console.log("Connected! Opening stream...");
       const stream = await this.transport.createBidirectionalStream();
      
-      this.writeStream = stream.getWriter();
+      this.writeStream = stream.writable.getWriter();
 
       console.log(`Starting media recording with timeslice: ${timeslice}ms`);
       this.mediaRecorder.start(timeslice);
