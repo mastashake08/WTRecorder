@@ -7,34 +7,58 @@ export class WTRecorder {
    * @param {string} [mimeType="video/webm"] - The MIME type for MediaRecorder.
    */
   constructor(serverUrl, stream, wtOptions = {}, mimeType = "video/webm") {
+    if (!serverUrl || typeof serverUrl !== "string") {
+      throw new Error("Invalid serverUrl: Expected a non-empty string.");
+    }
+    if (!(stream instanceof MediaStream)) {
+      throw new Error("Invalid stream: Expected a MediaStream instance.");
+    }
+
     this.serverUrl = serverUrl;
     this.stream = stream;
     this.chunks = [];
+    this.transport = null;
+    this.writeStream = null;
 
-    // Initialize WebTransport with optional WebTransport options
-    this.transport = new WebTransport(this.serverUrl, wtOptions);
+    try {
+      // Initialize WebTransport with optional options
+      this.transport = new WebTransport(this.serverUrl, wtOptions);
+    } catch (error) {
+      console.error("Failed to initialize WebTransport:", error);
+      throw new Error("WebTransport initialization failed.");
+    }
 
-    // Initialize MediaRecorder
-    this.mediaRecorder = new MediaRecorder(stream, { mimeType });
+    try {
+      // Initialize MediaRecorder
+      this.mediaRecorder = new MediaRecorder(stream, { mimeType });
 
-    this.mediaRecorder.ondataavailable = async (event) => {
-      if (event.data.size > 0) {
-        this.chunks.push(event.data);
-        if (this.writeStream) {
-          const bytes = await event.data.bytes();
-          this.writeStream.write(bytes);
+      this.mediaRecorder.ondataavailable = async (event) => {
+        if (event.data.size > 0) {
+          this.chunks.push(event.data);
+          if (this.writeStream) {
+            try {
+              const bytes = await event.data.bytes();
+              await this.writeStream.write(bytes);
+            } catch (err) {
+              console.error("Failed to write to WebTransport stream:", err);
+            }
+          }
         }
-      }
-    };
+      };
 
-    this.mediaRecorder.onerror = (event) => {
-      console.error("MediaRecorder Error:", event);
-    };
+      this.mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder encountered an error:", event.error);
+        this.stop();
+      };
 
-    this.mediaRecorder.onstop = () => {
-      console.log("MediaRecorder stopped.");
-      this.cleanup();
-    };
+      this.mediaRecorder.onstop = () => {
+        console.log("MediaRecorder stopped.");
+        this.cleanup();
+      };
+    } catch (error) {
+      console.error("Failed to initialize MediaRecorder:", error);
+      throw new Error("MediaRecorder initialization failed.");
+    }
   }
 
   /**
@@ -43,6 +67,10 @@ export class WTRecorder {
    * @returns {Promise<void>}
    */
   async start(timeslice = 1000) {
+    if (!this.transport) {
+      throw new Error("WebTransport instance is not available.");
+    }
+
     try {
       console.log("Connecting to WebTransport server...");
       await this.transport.ready;
@@ -54,7 +82,9 @@ export class WTRecorder {
       console.log(`Starting media recording with timeslice: ${timeslice}ms`);
       this.mediaRecorder.start(timeslice); // Default to 1000ms chunks
     } catch (error) {
-      console.error("Failed to start WebTransport session:", error);
+      console.error("Failed to start WebTransport session or MediaRecorder:", error);
+      this.cleanup();
+      throw new Error("Recording start failed.");
     }
   }
 
@@ -63,16 +93,27 @@ export class WTRecorder {
    * @returns {Promise<void>}
    */
   async stop() {
-    console.log("Stopping media recorder...");
-    this.mediaRecorder.stop();
-
-    if (this.writeStream) {
-      await this.writeStream.close();
+    if (!this.mediaRecorder || this.mediaRecorder.state === "inactive") {
+      console.warn("MediaRecorder is not active.");
+      return;
     }
 
-    if (this.transport) {
-      console.log("Closing WebTransport connection...");
-      await this.transport.close();
+    try {
+      console.log("Stopping media recorder...");
+      this.mediaRecorder.stop();
+
+      if (this.writeStream) {
+        await this.writeStream.close();
+      }
+
+      if (this.transport) {
+        console.log("Closing WebTransport connection...");
+        await this.transport.close();
+      }
+    } catch (error) {
+      console.error("Error occurred while stopping WTRecorder:", error);
+    } finally {
+      this.cleanup();
     }
   }
 
@@ -90,6 +131,9 @@ export class WTRecorder {
    * @returns {Blob} - The recorded media blob.
    */
   getRecordedBlob() {
+    if (!this.chunks.length) {
+      throw new Error("No recorded data available.");
+    }
     return new Blob(this.chunks, { type: this.mediaRecorder.mimeType });
   }
 }
