@@ -37,7 +37,8 @@ export class WTRecorder {
           this.chunks.push(event.data);
           if (this.writeStream) {
             try {
-              const bytes = await event.data.bytes();
+              const arrBuff = await event.data.arrayBuffer();
+              const bytes = new UInt8Array(arrBuff);
               await this.writeStream.write(bytes);
             } catch (err) {
               console.error("Failed to write to WebTransport stream:", err);
