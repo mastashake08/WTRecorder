@@ -39,7 +39,8 @@ export class WTRecorder {
             try {
               const arrBuff = await event.data.arrayBuffer();
               const bytes = new Uint8Array(arrBuff);
-              await this.writeStream.write(bytes);
+              this.writeStream.write(bytes);
+	      console.log('Data sent')
             } catch (err) {
               console.error("Failed to write to WebTransport stream:", err);
             }
