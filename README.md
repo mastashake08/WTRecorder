@@ -1,118 +1,131 @@
-# npm-package-template
+### **README.md**
 
-[![NPM](https://nodei.co/npm/npm-package-template.png)](https://nodei.co/npm/npm-package-template/)
+# WTRecorder
 
-[![NPM version](https://img.shields.io/npm/v/npm-package-template.svg)](https://www.npmjs.com/package/npm-package-template)
-[![Build Status](https://travis-ci.org/mastashake08/npm-package-template.svg?branch=master)](https://travis-ci.org/mastashake08/npm-package-template)
-[![Coverage Status](https://coveralls.io/repos/github/mastashake08/npm-package-template/badge.svg?branch=master)](https://coveralls.io/github/mastashake08/npm-package-template?branch=master)
+WTRecorder is a lightweight JavaScript library that uses **WebTransport** and **MediaRecorder APIs** to record and stream media data in real-time. Ideal for low-latency media streaming applications.
 
-npm package template.
+## 🚀 Features
+- 🎥 **Records media** from `MediaStream` (video/audio)
+- 📡 **Streams data via WebTransport** for low-latency transmission
+- ⚡ **Asynchronous API** for smooth handling
+- 🔧 **Customizable settings** via WebTransport options
+- 📄 **Exports recorded media as a Blob**
 
-## Installation
+---
 
-Clone repository with Git:
+## 📦 Installation
 
-```sh
-git clone https://github.com/mastashake08/npm-package-template.git
-cd npm-package-template
+```
+npm install wt-recorder
 ```
 
-## Usage
+---
 
-Rename package (use [npm-package-name-checker](https://mastashake08.org/npm-package-name-checker/) to check for name availability):
+## 🚀 Usage
 
-```sh
-# replace $NAME with your package name
-git grep -l npm-package-template | xargs sed -i '' -e "s/npm-package-template/$NAME/g"
+### **Importing the Module**
+Ensure that your project supports **ES Modules**:
+- Use `"type": "module"` in `package.json`
+- OR rename your file to `.mjs`
+
+```js
+import { WTRecorder } from 'wt-recorder';
 ```
 
-Manually update the files:
-
-- [ ] LICENSE
-- [ ] README.md
-- [ ] package.json
-
-Reinitialize Git repository:
-
-```sh
-rm -rf .git
-git init
+### **Getting Media Stream**
+```js
+const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 ```
 
-Install package dependencies:
+### **Creating and Starting the Recorder**
+```js
+const wtOptions = { allowPooling: true }; // Optional WebTransport options
+const serverUrl = "https://your-server.com/webtransport";
 
-```sh
-npm install
+const recorder = new WTRecorder(serverUrl, stream, wtOptions);
+await recorder.start(500); // Start recording with 500ms timeslice
 ```
 
-Make first commit:
-
-```sh
-git commit -am "feat: initial commit"
+### **Stopping and Retrieving Recorded Data**
+```js
+setTimeout(async () => {
+  await recorder.stop();
+  const recordedBlob = recorder.getRecordedBlob();
+  console.log("Recorded Blob:", recordedBlob);
+}, 5000); // Stop recording after 5 seconds
 ```
 
-## Testing
+---
 
-Run tests:
+## 📖 API Reference
 
-```sh
-npm test
+### **WTRecorder Constructor**
+```js
+const recorder = new WTRecorder(serverUrl, stream, wtOptions, mimeType);
+```
+#### **Parameters:**
+- `serverUrl` (**string**) – WebTransport server URL.
+- `stream` (**MediaStream**) – Video/audio stream to be recorded.
+- `wtOptions` (**Object** | optional) – WebTransport configuration settings (default: `{}`).
+- `mimeType` (**string** | optional) – MIME type for recording (default: `"video/webm"`).
+
+---
+
+### **Methods**
+
+#### **`.start(timeslice = 1000)`**
+Starts the recording and WebTransport streaming.
+
+| Parameter  | Type   | Default | Description |
+|------------|--------|---------|-------------|
+| `timeslice` | `number` | `1000` | Time interval (ms) for collecting chunks |
+
+#### **`.stop()`**
+Stops the recording and closes the WebTransport session.
+
+#### **`.getRecordedBlob()`**
+Returns the recorded media as a **Blob**.
+
+#### **`.cleanup()`**
+Cleans up resources after stopping the recording.
+
+---
+
+## ⚡ Example App
+```js
+import { WTRecorder } from 'wt-recorder';
+
+(async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+  const recorder = new WTRecorder("https://your-server.com/webtransport", stream, { allowPooling: true });
+
+  await recorder.start(500);
+
+  setTimeout(async () => {
+    await recorder.stop();
+    const recordedBlob = recorder.getRecordedBlob();
+    console.log("Recorded Blob:", recordedBlob);
+  }, 5000);
+})();
 ```
 
-Run tests in watch mode:
+---
 
-```sh
-npm run test:watch
+## 📜 License
+This project is licensed under the **MIT License**.
+
+---
+
+## ✨ Contributors
+Contributions are welcome! Feel free to submit PRs or open issues.
+
 ```
 
-Run tests with coverage:
+---
 
-```sh
-npm run test:coverage
-```
-
-View coverage in browser:
-
-```sh
-npm run test:coverage:report
-open coverage/index.html
-```
-
-Lint files:
-
-```sh
-npm run lint
-```
-
-Fix lint errors:
-
-```sh
-npm run lint:fix
-```
-
-## Release
-
-Only collaborators with credentials can release and publish:
-
-```sh
-npm run release
-git push --follow-tags && npm publish
-```
-
-To see what files are going to be published, run the command:
-
-```sh
-npm pack --dry-run
-# tar tvf $(npm pack)
-```
-
-## Support
-
-- [Patreon](https://b.remarkabl.org/patreon)
-- [Ko-fi](https://b.remarkabl.org/ko-fi)
-- [Liberapay](https://b.remarkabl.org/liberapay)
-- [Teepsring](https://b.remarkabl.org/teespring)
-
-## License
-
-[MIT](https://github.com/mastashake08/npm-package-template/blob/master/LICENSE)
+### **Key Updates in This README**
+✅ **ES Module support** (`import { WTRecorder } from 'wt-recorder';`)  
+✅ **Clear API documentation with parameters & defaults**  
+✅ **Full example app for easy usage**  
+✅ **Install instructions & WebTransport details**  
