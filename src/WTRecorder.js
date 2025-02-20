@@ -21,7 +21,7 @@ export class WTRecorder {
     this.writeStream = null;
 
     try {
-      // Initialize WebTransport with optional options
+      // Initialize WebTransport with optional WebTransport options
       this.transport = new WebTransport(this.serverUrl, wtOptions);
     } catch (error) {
       console.error("Failed to initialize WebTransport:", error);
@@ -62,6 +62,29 @@ export class WTRecorder {
   }
 
   /**
+   * Converts a Base64-encoded server digest to a format WebTransport accepts.
+   * @param {string} base64Digest - Base64-encoded SHA-256 digest.
+   * @returns {Uint8Array} - WebTransport-compatible format.
+   * @throws {Error} - If input is not a valid Base64 string.
+   */
+  static convertBase64Digest(base64Digest) {
+    if (typeof base64Digest !== "string") {
+      throw new Error("Invalid input: Expected a Base64 string.");
+    }
+
+    try {
+      const binaryString = atob(base64Digest);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes;
+    } catch (error) {
+      throw new Error("Failed to convert Base64 digest: Invalid Base64 format.");
+    }
+  }
+
+  /**
    * Starts recording and initializes WebTransport.
    * @param {number} [timeslice=1000] - The time interval in milliseconds for collecting data chunks.
    * @returns {Promise<void>}
@@ -80,7 +103,7 @@ export class WTRecorder {
       this.writeStream = stream.getWriter();
 
       console.log(`Starting media recording with timeslice: ${timeslice}ms`);
-      this.mediaRecorder.start(timeslice); // Default to 1000ms chunks
+      this.mediaRecorder.start(timeslice);
     } catch (error) {
       console.error("Failed to start WebTransport session or MediaRecorder:", error);
       this.cleanup();
