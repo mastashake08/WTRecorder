@@ -29,7 +29,7 @@ Ensure that your project supports **ES Modules**:
 - OR rename your file to `.mjs`
 
 ```js
-import { WTRecorder } from 'wt-recorder';
+import { WTRecorder } from '@mastashake08/wt-recorder';
 ```
 
 ### **Getting Media Stream**
