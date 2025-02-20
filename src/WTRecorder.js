@@ -99,7 +99,8 @@ export class WTRecorder {
       await this.transport.ready;
 
       console.log("Connected! Opening stream...");
-      const stream = this.transport.createUnidirectionalStream();
+      const stream = await this.transport.createUnidirectionalStream();
+     
       this.writeStream = stream.getWriter();
 
       console.log(`Starting media recording with timeslice: ${timeslice}ms`);
