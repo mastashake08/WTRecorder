@@ -100,7 +100,7 @@ export class WTRecorder {
       await this.transport.ready;
 
       console.log("Connected! Opening stream...");
-      const stream = await this.transport.createUnidirectionalStream();
+      const stream = await this.transport.createBidirectionalStream();
      
       this.writeStream = stream.getWriter();
 
